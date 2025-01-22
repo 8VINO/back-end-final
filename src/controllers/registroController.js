@@ -38,3 +38,16 @@ exports.Insert = (req, res, next) => {
             next(err); 
         });
 };
+
+exports.SearchAll = (req, res, next) => {
+    const id_conta = req.params.id_conta;  
+    registroService.buscarRegistroPorConta(id_conta)
+        .then(registro => {
+            if (registro) {
+                res.status(200).send(registro);
+            } else {
+                res.status(404).send("Registro não encontrado.");
+            }
+        })
+        .catch(error => next(error));
+}

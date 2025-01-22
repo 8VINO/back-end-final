@@ -44,6 +44,10 @@ const Registro = sequelize.define('registros', {
     proximo_pagamento: {
         allowNull: true,
         type: Sequelize.DATE,  // Data do próximo pagamento
+    },
+    processado:{
+        allowNull: true,
+        type: Sequelize.BOOLEAN
     }
 
 }, {

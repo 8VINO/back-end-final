@@ -2,7 +2,27 @@ const Registro = require('../models/registro');
 const Conta = require('../models/conta');
 const cron = require('node-cron');
 
+// Função para calcular o próximo pagamento com base no período
+const calcularProximoPagamento = (dataBase, periodo) => {
+    const novaData = new Date(dataBase);
+    if (periodo === 'semanal') {
+        novaData.setDate(novaData.getDate() + 7);
+    } else if (periodo === 'mensal') {
+        novaData.setMonth(novaData.getMonth() + 1);
+    } else if (periodo === 'anual') {
+        novaData.setFullYear(novaData.getFullYear() + 1);
+    }
+    return ajustarParaUTC3ComUmDia(novaData);
+};
 
+// Função para ajustar a data para UTC-3 e adicionar um dia
+const ajustarParaUTC3ComUmDia = (data) => {
+    const dataAjustada = new Date(data);
+    dataAjustada.setHours(0, 0, 0, 0); // Define para meia-noite
+    dataAjustada.setDate(dataAjustada.getDate() +1 ); // Adiciona 1 dia
+    dataAjustada.setTime(dataAjustada.getTime() - 3 * 60 * 60 * 1000); // Subtrai 3 horas para UTC-3
+    return dataAjustada;
+};
 
 exports.inserirRegistro = async (dadosRegistro, idConta) => {
     const conta = await Conta.findByPk(idConta);
@@ -27,33 +47,21 @@ exports.inserirRegistro = async (dadosRegistro, idConta) => {
         throw new Error('Valor inválido');
     }
 
-    const ajustarParaUTC3ComUmDia = (data) => {
-        const dataAjustada = new Date(data);
-        dataAjustada.setHours(0, 0, 0, 0); // Define para meia-noite
-        dataAjustada.setDate(dataAjustada.getDate() + 1); // Adiciona 1 dia
-        dataAjustada.setTime(dataAjustada.getTime() - 3 * 60 * 60 * 1000); // Subtrai 3 horas para UTC-3
-        return dataAjustada;
-    };
-
     const dataPagamento = ajustarParaUTC3ComUmDia(data);
 
-    const calcularProximoPagamento = (dataBase, periodo) => {
-        const novaData = new Date(dataBase);
-        if (periodo === 'semanal') {
-            novaData.setDate(novaData.getDate() + 7);
-        } else if (periodo === 'mensal') {
-            novaData.setMonth(novaData.getMonth() + 1);
-        } else if (periodo === 'anual') {
-            novaData.setFullYear(novaData.getFullYear() + 1);
-        }
-        return ajustarParaUTC3ComUmDia(novaData);
-    };
-
-    // Calcular o próximo pagamento, se for recorrente
+    // Verifica se a data de cadastro é hoje e processa o pagamento imediatamente
+    const ajusteHoje = ajustarParaUTC3ComUmDia(new Date());
+    ajusteHoje.setDate(ajusteHoje.getDate() -1 );
+    dataHoje=ajusteHoje
+    console.log(dataHoje)
     let proximoPagamento = null;
 
-    if (recorrencia === 'sim') {
-        proximoPagamento = calcularProximoPagamento(dataPagamento, periodoRecorrencia);
+    if (dataPagamento <= dataHoje) {
+        if (recorrencia === 'sim') {
+            proximoPagamento = calcularProximoPagamento(dataHoje, periodoRecorrencia);
+        }
+        // Processar o pagamento imediatamente
+        await processarPagamento(dataHoje, tipo, valorFloat, conta, titulo, categoria, subcategoria, idConta, recorrencia, periodoRecorrencia, proximoPagamento);
     }
 
     // Criar o registro inicial no banco de dados
@@ -75,7 +83,7 @@ exports.inserirRegistro = async (dadosRegistro, idConta) => {
 
     // Função para agendar o cron job
     const agendarProcessamento = (dataExecucao, registroId) => {
-        const cronExpression = `* * * * * *`;
+        const cronExpression = `${dataExecucao.getUTCMinutes()} ${dataExecucao.getUTCHours()} ${dataExecucao.getUTCDate()} ${dataExecucao.getUTCMonth() + 1} *`
 
         cron.schedule(cronExpression, async () => {
             try {
@@ -154,13 +162,57 @@ exports.inserirRegistro = async (dadosRegistro, idConta) => {
     };
 };
 
+// Função para processar o pagamento imediatamente
+const processarPagamento = async (dataExecucao, tipo, valor, conta, titulo, categoria, subcategoria, idConta, recorrencia, periodoRecorrencia, proximo_pagamento) => {
+    const contaAtualizada = await Conta.findByPk(idConta);
+
+    if (!contaAtualizada) {
+        console.error('Conta não encontrada para processamento.');
+        return;
+    }
+
+    contaAtualizada.saldo = parseFloat(contaAtualizada.saldo) || 0;
+    contaAtualizada.renda = parseFloat(contaAtualizada.renda) || 0;
+    contaAtualizada.gasto = parseFloat(contaAtualizada.gasto) || 0;
+
+    // Atualizar saldo da conta
+    if (tipo === 'entrada') {
+        contaAtualizada.saldo += valor;
+        contaAtualizada.renda += valor;
+    } else if (tipo === 'saida') {
+        contaAtualizada.saldo -= valor;
+        contaAtualizada.gasto += valor;
+    }
+
+    await contaAtualizada.save();
+    console.log(`Pagamento processado imediatamente: Saldo atualizado.`);
+
+    if (recorrencia === 'sim') {
+        const proximaDataPagamento = calcularProximoPagamento(dataExecucao, periodoRecorrencia);
+
+        const novoRegistro = await Registro.create({
+            tipo,
+            titulo,
+            valor,
+            categoria,
+            subcategoria,
+            data: proximaDataPagamento,
+            recorrencia,
+            periodoRecorrencia,
+            proximo_pagamento: calcularProximoPagamento(proximaDataPagamento, periodoRecorrencia),
+            idconta: conta.id_conta,
+            processado: false,
+        });
+
+        console.log(`Novo registro recorrente criado: ID ${novoRegistro.id_registro}, Próximo pagamento: ${novoRegistro.proximo_pagamento}`);
+    }
+};
 
 exports.buscarRegistroPorConta = (id) => {
     console.log("ID recebido:", id);
     return Registro.findAll({
-      where: {
-        idconta: id
-      }
+        where: {
+            idconta: id
+        }
     });
-  };
-  
+};

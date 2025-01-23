@@ -108,9 +108,9 @@ exports.Login = (req,res,next) =>{
                 res.status(401).send('Email ou senha invalidos.')
             }
             
-       
+            
             const token = jwt.sign({id_usuario: dados}, secret);
-            res.status(200).json({ token });
+            res.status(200).json({ id_usuario: dados, token: token });
             
 
         })

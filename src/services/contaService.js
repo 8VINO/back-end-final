@@ -12,7 +12,7 @@ exports.deletarConta = (id) => {
         if (conta) {
           return conta.destroy();
         }
-        return null; // Retorna null caso a conta não exista
+        return null; // retorna null caso a conta não exista
       });
   };
   

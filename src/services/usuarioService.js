@@ -105,7 +105,7 @@ exports.deletarUsuario = (id) => {
       if (usuario) {
         return usuario.destroy();
       }
-      return null; // Retorna null caso o usuário não exista
+      return null; 
     });
 };
 
@@ -140,7 +140,7 @@ exports.esquecerSenha = async (email) => {
   const usuario = await Usuario.findOne({ where: { email } });
   
   if (!usuario) {
-    return null; // Caso o usuário não exista
+    return null; 
   }
 
   const resetToken = crypto.randomBytes(20).toString('hex'); // Gera um token aleatório
@@ -153,7 +153,7 @@ exports.esquecerSenha = async (email) => {
   await usuario.update({ resetToken, resetTokenExpires });
 
   // Configuração do Nodemailer para enviar o e-mail
-  // Looking to send emails in production? Check out our Email API/SMTP product!
+  
   var transporter = nodemailer.createTransport({
   host: "",
   port: 2525,

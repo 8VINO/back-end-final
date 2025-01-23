@@ -109,7 +109,7 @@ exports.Login = (req,res,next) =>{
             }
             
        
-            const token = jwt.sign({id: dados}, secret, { expiresIn: 300 });
+            const token = jwt.sign({id_usuario: dados}, secret);
             res.status(200).json({ token });
             
 

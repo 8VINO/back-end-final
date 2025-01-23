@@ -7,8 +7,8 @@ const {verifyJWT} = require('../middlewares/token')
 
 router.post('/usuario/cadastrar', validarCadastro, UsuarioController.Insert);
 router.post('/usuario/login', validarLogin, UsuarioController.Login);
-router.get('/usuario', UsuarioController.SearchAll);
-router.get('/usuario/:id_usuario', UsuarioController.SearchOne);
+router.get('/usuario',verifyJWT, UsuarioController.SearchAll);
+router.get('/usuario/:id_usuario',verifyJWT, UsuarioController.SearchOne);
 router.put('/usuario/:id_usuario',validarPefil, UsuarioController.Update);
 router.delete('/usuario/:id_usuario', UsuarioController.Delete);
 

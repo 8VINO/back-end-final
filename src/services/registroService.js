@@ -28,7 +28,7 @@ exports.inserirRegistro = async (dadosRegistro, idConta) => {
     const conta = await Conta.findByPk(idConta);
 
     if (!conta) {
-        return null; // Retorna null se a conta não existir
+        return null; // retorna null se a conta não existir
     }
 
     const {

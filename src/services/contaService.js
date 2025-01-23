@@ -16,3 +16,10 @@ exports.deletarConta = (id) => {
       });
   };
   
+exports.buscarContaPorId = (id) => {
+  return Conta.findOne({
+    where: {
+        idusuario: id
+    }
+  });
+  };

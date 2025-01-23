@@ -27,6 +27,11 @@ const Conta = sequelize.define('contas', {
         type: Sequelize.DECIMAL(11,2),
         allowNull: false
     },
+    meta: {
+        defaultValue: 0,
+        type: Sequelize.DECIMAL(11,2),
+        allowNull: false
+    },
     
 }, {
     timestamps: false

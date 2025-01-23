@@ -26,3 +26,19 @@ exports.Delete = (req, res, next) => {
         })
         .catch(error => next(error));
     };
+
+exports.SearchOne = (req, res, next) => {
+        const id = req.params.id_usuario;
+    
+        contaService.buscarContaPorId(id)
+            .then(conta => {
+                if (conta) {
+                    res.status(200).send(conta);
+                } else {
+                    res.status(404).send('Conta não encontrada');
+                }
+            })
+            .catch(error => next(error));
+    };
+    
+    

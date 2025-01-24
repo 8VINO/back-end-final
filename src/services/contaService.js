@@ -1,9 +1,9 @@
 const Conta = require('../models/conta');
 
-exports.atualizarConta=async(id,dadosConta)=>{
-    const {saldo,gasto,renda}=dadosConta
+exports.atualizarMeta=async(id,dadosConta)=>{
+    const {meta}=dadosConta
     const conta = await Conta.findByPk(id);
-    return conta.update({saldo,gasto,renda})
+    return conta.update({meta})
 }
 
 exports.deletarConta = (id) => {
@@ -23,3 +23,15 @@ exports.buscarContaPorId = (id) => {
     }
   });
   };
+
+exports.buscarMetaPorId = async (id) => {
+    dadosConta=await Conta.findOne({
+      where: {
+          id_conta: id
+      },
+      attributes: ['meta']
+    });
+    console.log(dadosConta.meta)
+    return dadosConta.meta
+};
+  

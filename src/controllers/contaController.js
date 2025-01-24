@@ -3,13 +3,13 @@ const contaService = require('../services/contaService');
 exports.Update=(req,res,next)=>{
     const id = req.params.id_conta
     const dadosConta=req.body
-    contaService.atualizarConta(id,dadosConta)
-    .then(dados => {
-        if (dados) {
-            return res.status(200).send(dados);
+    contaService.atualizarMeta(id,dadosConta)
+    .then(meta => {
+        if (meta) {
+            return res.status(200).send(meta);
         }
       
-          return res.status(500).json({ mensagem: 'Ocorreu um erro ao atualizar os dados.' });
+          return res.status(500).json({ mensagem: 'Ocorreu um erro ao atualizar a meta.' });
         }).catch(error => next(error));
 }
 
@@ -40,5 +40,19 @@ exports.SearchOne = (req, res, next) => {
             })
             .catch(error => next(error));
     };
+
+exports.SearchMeta = (req, res, next) => {
+        const id = req.params.id_conta;
     
+        contaService.buscarMetaPorId(id)
+            .then(meta => {
+                if (meta) {
+                    res.status(200).send(meta);
+                } else {
+                    res.status(404).send('Meta não encontrada');
+                }
+            })
+            .catch(error => next(error));
+    };
+
     

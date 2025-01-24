@@ -5,11 +5,11 @@ const cron = require('node-cron');
 // Função para calcular o próximo pagamento com base no período
 const calcularProximoPagamento = (dataBase, periodo) => {
     const novaData = new Date(dataBase);
-    if (periodo === 'semanal') {
+    if (periodo === 'Semanal') {
         novaData.setDate(novaData.getDate() + 7);
-    } else if (periodo === 'mensal') {
+    } else if (periodo === 'Mensal') {
         novaData.setMonth(novaData.getMonth() + 1);
-    } else if (periodo === 'anual') {
+    } else if (periodo === 'Anual') {
         novaData.setFullYear(novaData.getFullYear() + 1);
     }
     return ajustarParaUTC3ComUmDia(novaData);

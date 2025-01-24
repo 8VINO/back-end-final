@@ -135,7 +135,8 @@ exports.ForgotPassword = async (req, res, next) => {
   
   // Redefinir a senha
 exports.ResetPassword = async (req, res, next) => {
-    const { token, senhaNova } = req.body;
+    const {token}=req.params
+    const {senhaNova } = req.body;
   
     try {
       const usuario = await usuarioService.resetarSenha(token, senhaNova);

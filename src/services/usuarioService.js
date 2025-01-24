@@ -163,7 +163,7 @@ exports.esquecerSenha = async (email) => {
   }
 });
 
-  const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+  const resetLink = `http://localhost:3000/resetar-senha?token=${resetToken}`;
 
   // Envia o link de redefinição de senha
   await transporter.sendMail({
